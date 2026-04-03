@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="student.css">
+</head>
+
+<body>
+<div class="dashboard-container">
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-text">
+                <span class="logo-edu">Edu</span><span class="logo-sync">Sync</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="profile">
+                <i class="fas fa-user"></i><span>Profile</span>
+            </a>
+
+            <a href="#" class="nav-item" data-tab="attendance">
+                <i class="fas fa-calendar-check"></i><span>Attendance</span>
+            </a>
+
+            <a href="#" class="nav-item" data-tab="lecture-attendance">
+                <i class="fas fa-book"></i><span>Lecture-wise</span>
+            </a>
+
+            <a href="{{ url_for('logout') }}" class="nav-item logout">
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="hamburger-menu" id="hamburgerMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <h1 class="mobile-title">
+                <span class="logo-edu">Edu</span><span class="logo-sync">Sync</span>
+            </h1>
+
+            <button class="theme-toggle mobile-theme-toggle">
+                <i class="fas fa-sun"></i>
+            </button>
+        </div>
+
+        <!-- ================= PROFILE ================= -->
+        <section class="tab-content active" id="profile">
+            <div class="page-header">
+                <h1><i class="fas fa-user"></i> My Profile</h1>
+                <button class="theme-toggle"><i class="fas fa-sun"></i></button>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h2>{{ student.name if student else 'Student' }}</h2>
+                        <p>{{ student.department if student else '' }}</p>
+                        <span class="batch">Batch: {{ student.batch if student else '' }}</span>
+                    </div>
+                </div>
+
+                <div class="profile-details">
+                    <div class="detail-row"><span class="label">Student ID</span><span class="value">{{ student.enrollment if student else '' }}</span></div>
+                    <div class="detail-row"><span class="label">Class</span><span class="value">{{ student.class if student else '' }}</span></div>
+                    <div class="detail-row"><span class="label">Email</span><span class="value">{{ student.email if student else '' }}</span></div>
+                    <div class="detail-row"><span class="label">Phone</span><span class="value">{{ student.phone_no if student else '' }}</span></div>
+                    <div class="detail-row"><span class="label">Address</span><span class="value">{{ student.address if student else '' }}</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ATTENDANCE SUMMARY ================= -->
+        <section class="tab-content" id="attendance">
+            <div class="page-header">
+                <h1><i class="fas fa-clipboard-check"></i> Attendance Overview</h1>
+                <button class="theme-toggle"><i class="fas fa-sun"></i></button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon present"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="presentCount">0</span>
+                        <span class="stat-label">Present</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon absent"><i class="fas fa-times-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="absentCount">0</span>
+                        <span class="stat-label">Absent</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon total"><i class="fas fa-book"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalLectures">104</span>
+                        <span class="stat-label">Monthly Target</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon percentage"><i class="fas fa-percent"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="attendancePercent">0%</span>
+                        <span class="stat-label">Attendance %</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Attendance Records -->
+            <div class="attendance-records">
+                <h3><i class="fas fa-list"></i> Attendance Records</h3>
+                <div class="records-list" id="attendanceRecords">
+                    <p class="no-data">Loading attendance records...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= LECTURE WISE ================= -->
+        <section class="tab-content" id="lecture-attendance">
+            <div class="page-header">
+                <h1><i class="fas fa-clock"></i> Lecture-wise Attendance</h1>
+                <button class="theme-toggle"><i class="fas fa-sun"></i></button>
+            </div>
+
+            <div class="lecture-list" id="lectureList">
+                <!-- Dynamic lecture cards will be loaded here -->
+                <div class="lecture-card">
+                    <div class="lecture-info">
+                        <h3>Lecture 1</h3>
+                        <p>09:00 - 09:55</p>
+                    </div>
+                    <div class="lecture-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 85%;"></div>
+                        </div>
+                        <span class="progress-text">85%</span>
+                    </div>
+                </div>
+                <div class="lecture-card">
+                    <div class="lecture-info">
+                        <h3>Lecture 2</h3>
+                        <p>09:55 - 10:50</p>
+                    </div>
+                    <div class="lecture-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 92%;"></div>
+                        </div>
+                        <span class="progress-text">92%</span>
+                    </div>
+                </div>
+                <div class="lecture-card">
+                    <div class="lecture-info">
+                        <h3>Lecture 3</h3>
+                        <p>11:00 - 11:55</p>
+                    </div>
+                    <div class="lecture-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 88%;"></div>
+                        </div>
+                        <span class="progress-text">88%</span>
+                    </div>
+                </div>
+                <div class="lecture-card">
+                    <div class="lecture-info">
+                        <h3>Lecture 4</h3>
+                        <p>11:55 - 12:50</p>
+                    </div>
+                    <div class="lecture-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 78%;"></div>
+                        </div>
+                        <span class="progress-text">78%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="student.js"></script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentor Panel - Student Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mentor.css">
+</head>
+
+<body>
+    <!-- Hidden data element for JavaScript -->
+    <script type="application/json" id="students-data">{{ students | tojson | safe }}</script>
+    <script type="application/json" id="mentor-data">{{ mentor | tojson | safe }}</script>
+    
+    <div class="dashboard-container">
+        <!-- Sidebar Overlay (for mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-text" id="sidebarLogo">
+                    <span class="logo-edu">Edu</span><span class="logo-sync">Sync</span>
+                </div>
+                <!-- <h3>Mentor Portal</h3>
+                <p>Welcome, Dr. Smith</p> -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="students">
+                    <i class="fas fa-users"></i>
+                    <span>My Students</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="records">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>All Records</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="faceid">
+                    <i class="fas fa-id-card"></i>
+                    <span>Face ID</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mobile Header with Hamburger -->
+            <div class="mobile-header">
+                <button class="hamburger-menu" id="hamburgerMenu" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="mobile-title"><span class="logo-edu">Edu</span><span class="logo-sync">Sync</span></h1>
+                <button class="theme-toggle mobile-theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
+
+            <!-- Profile Tab -->
+            <section class="tab-content active" id="profile">
+                <div class="page-header">
+                    <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="profile-name-section">
+                                <h2 id="profileName">Loading...</h2>
+                                <span class="profile-role">Mentor</span>
+                            </div>
+                        </div>
+                        <div class="profile-details">
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-id-badge"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Mentor ID</span>
+                                    <span class="detail-value" id="profileGeneratedId">-</span>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Email</span>
+                                    <span class="detail-value" id="profileEmail">-</span>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item highlight">
+                                <div class="detail-icon">
+                                    <i class="fas fas-class"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Assigned Class</span>
+                                    <span class="detail-value" id="profileClass">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Students Tab -->
+            <section class="tab-content" id="students">
+                <div class="page-header">
+                    <h1><i class="fas fa-users"></i> My Students</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <div class="filter-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="studentSearch" placeholder="Search students...">
+                    </div>
+                </div>
+
+                <div class="students-grid" id="studentsGrid">
+                    {% if students %}
+                    {% for row in students %}
+                    <div class="student-card">
+                        <div class="student-card-header">
+                            <div class="student-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="student-name">{{ row.name }}</div>
+                                <div class="student-id">{{ row.enrollment }}</div>
+                            </div>
+                        </div>
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="label">Batch</span>
+                                <span class="value">{{ row.batch }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Email</span>
+                                <span class="value">{{ row.email }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Department</span>
+                                <span class="value">{{ row.department }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p style="text-align: center; color: #888;">No students assigned to you yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Records Tab -->
+            <section class="tab-content" id="records">
+                <div class="page-header">
+                    <h1><i class="fas fa-clipboard-list"></i> All Students Records</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <div class="records-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="recordsSearch" placeholder="Search records...">
+                    </div>
+                    <button class="export-btn" id="exportCSV">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
+                </div>
+
+                <div class="records-table-container">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Present</th>
+                                <th>Attendance %</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <!-- Records will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Face ID Tab -->
+            <section class="tab-content" id="faceid">
+                <div class="page-header">
+                    <h1><i class="fas fa-id-card"></i> Face ID Management</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <div class="faceid-container">
+                    <!-- Bulk Student Upload Section -->
+                    <div class="faceid-capture-section">
+                        <div class="faceid-card bulk-upload-card">
+                            <div class="faceid-header">
+                                <h2><i class="fas fa-file-import"></i> Bulk Student Upload</h2>
+                                <p class="faceid-subtitle">Import students from CSV or Excel file</p>
+                            </div>
+                            <div class="bulk-upload-form">
+                                <div class="upload-area bulk-upload-area" id="bulkUploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-csv"></i>
+                                    </div>
+                                    <h3>Upload Student Data</h3>
+                                    <p>Select a CSV or Excel file containing student information</p>
+                                    <label for="studentFileUpload" class="upload-btn">
+                                        <i class="fas fa-folder-open"></i> Browse Files
+                                    </label>
+                                    <input type="file" id="studentFileUpload" accept=".csv,.xlsx,.xls"
+                                        style="display: none;">
+                                    <p class="upload-hint">Supported: CSV, XLSX, XLS • File size: Max 5MB</p>
+                                </div>
+
+                                <div class="file-preview" id="filePreview" style="display: none;">
+                                    <div class="file-info">
+                                        <i class="fas fa-file-excel file-icon"></i>
+                                        <div class="file-details">
+                                            <h4 id="fileName">filename.csv</h4>
+                                            <p id="fileSize">0 KB</p>
+                                        </div>
+                                        <button class="remove-file-btn" id="removeFile">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="bulk-upload-actions">
+                                    <button class="download-template-btn" id="downloadTemplate">
+                                        <i class="fas fa-download"></i> Download Template
+                                    </button>
+                                    <button class="upload-students-btn" id="uploadStudents" disabled>
+                                        <i class="fas fa-upload"></i> Upload Students
+                                    </button>
+                                </div>
+
+                                <div class="upload-status" id="uploadStatus" style="display: none;">
+                                    <div class="status-message" id="statusMessage">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Upload successful!</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faceid-capture-section">
+                        <div class="faceid-card">
+                            <div class="faceid-header">
+                                <h2><i class="fas fa-user-plus"></i> Add Face ID Images</h2>
+                                <p class="faceid-subtitle">Add 2-5 face images for each student</p>
+                            </div>
+                            <div class="faceid-form">
+                                <div class="form-group">
+                                    <label for="faceidStudentSelect"><i class="fas fa-user"></i> Select Student</label>
+                                    <select id="faceidStudentSelect" name="enrollment" class="filter-select">
+                                        <option value="">Choose a student...</option>
+
+                                        {% if students %}
+                                        {% for student in students %}
+                                        <option value="{{ student.enrollment }}">
+                                            {{ student.name }} ({{ student.enrollment }})
+                                        </option>
+                                        {% endfor %}
+                                        {% endif %}
+
+                                    </select>
+                                </div>
+
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h3>Upload Face Images</h3>
+                                    <p>Select 2-5 images from your device</p>
+                                    <label for="faceImageUpload" class="upload-btn">
+                                        <i class="fas fa-folder-open"></i> Browse Files
+                                    </label>
+                                    <input type="file" id="faceImageUpload" accept="image/*" multiple
+                                        style="display: none;">
+                                    <p class="upload-hint">Supported: JPG, PNG • Max 5 images • Min 2 images required
+                                    </p>
+                                </div>
+
+                                <div class="captured-image-preview" id="capturedPreview" style="display: none;">
+                                    <div class="preview-header">
+                                        <h3><i class="fas fa-images"></i> Selected Images <span id="imageCount"
+                                                class="image-count">0/5</span></h3>
+                                        <p class="min-images-warning" id="minImagesWarning">
+                                            <i class="fas fa-exclamation-circle"></i> Minimum 2 images required
+                                        </p>
+                                    </div>
+                                    <div class="captured-images-grid" id="capturedImagesContainer">
+                                        <!-- Captured images will appear here -->
+                                    </div>
+                                    <div class="captured-images-actions">
+                                        <button class="clear-images-btn" id="clearCapturedImages">
+                                            <i class="fas fa-trash-alt"></i> Clear All
+                                        </button>
+                                        <button class="save-face-btn" id="saveFaceId" disabled>
+                                            <i class="fas fa-save"></i> Save Face ID
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faceid-records-section">
+                        <div class="faceid-card">
+                            <div class="faceid-header">
+                                <h2><i class="fas fa-users"></i> Registered Faces</h2>
+                            </div>
+                            <div class="faceid-search">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="faceidSearch" placeholder="Search by name or ID...">
+                                </div>
+                            </div>
+                            <div class="faceid-list" id="faceidList">
+                                <!-- Registered faces will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Student Details</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Student details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- View Images Modal -->
+    <div class="modal-overlay" id="viewImagesModal">
+        <div class="modal-content view-images-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-images"></i> <span id="viewImagesStudentName">Student Images</span></h2>
+                <button class="modal-close" id="closeViewImagesModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="viewImagesContent">
+                    <!-- Images will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-action-btn primary" id="closeViewImagesBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="mentor.js"></script>
+</body>
+
+</html>

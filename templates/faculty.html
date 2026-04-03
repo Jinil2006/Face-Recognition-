@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Panel - Attendance Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="faculty.css">
+    <link rel="stylesheet" href="faculty_camera.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Overlay (for mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-text" id="sidebarLogo">
+                    <span class="logo-edu">Edu</span><span class="logo-sync">Sync</span>
+                </div>
+                <!-- <h3>Faculty Portal</h3>
+                <p>Welcome, Prof. Anderson</p> -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="upload">
+                    <i class="fas fa-camera"></i>
+                    <span>Upload Images</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="records">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Attendance Records</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mobile Header with Hamburger -->
+            <header class="mobile-header">
+                <button class="hamburger-menu" id="hamburgerMenu" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="mobile-title"><span class="logo-edu">Edu</span><span class="logo-sync">Sync</span></h1>
+                <button class="theme-toggle mobile-theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </header>
+
+            <!-- Profile Tab -->
+            <section class="tab-content" id="profile">
+                <div class="page-header">
+                    <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="profile-name-section">
+                                <h2 id="profileName">{{ faculty.full_name if faculty else 'Loading...' }}</h2>
+                                <span class="profile-role">Faculty</span>
+                            </div>
+                        </div>
+                        <div class="profile-details">
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-id-badge"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Faculty ID</span>
+                                    <span class="detail-value" id="profileFacultyId">{{ faculty.id if faculty else '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Email</span>
+                                    <span class="detail-value" id="profileEmail">{{ faculty.email if faculty else '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Department</span>
+                                    <span class="detail-value" id="profileDepartment">{{ faculty.department if faculty else '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Designation</span>
+                                    <span class="detail-value" id="profileDesignation">{{ faculty.designation if faculty else '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="page-header">
+                    <h1><i class="fas fa-chart-pie"></i> Dashboard Overview</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn" data-tab="upload">
+                            <i class="fas fa-camera"></i>
+                            <span>Upload Group Photo</span>
+                        </button>
+                        <button class="action-btn" data-tab="records">
+                            <i class="fas fa-file-alt"></i>
+                            <span>View Reports</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Images Tab -->
+            <div class="tab-content" id="upload">
+                <div class="page-header">
+                    <h1><i class="fas fa-camera"></i> Upload Group Images</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Main Upload Section -->
+                <div class="upload-main-section">
+                    <!-- Selection Card -->
+                    <div class="selection-card">
+                        <div class="selection-header">
+                            <h2><i class="fas fa-calendar-alt"></i> Lecture Details</h2>
+                        </div>
+                        <div class="selection-body">
+                            <div class="form-row-single">
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar"></i> Lecture Date <span
+                                            class="required">*</span></label>
+                                    <input type="date" id="lectureDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-row-single">
+                                <div class="form-group">
+                                    <label><i class="fas fa-clock"></i> Time Slot <span
+                                            class="required">*</span></label>
+                                    <select id="timeSlot" class="form-control" required>
+                                        <option value="">Select Time Slot</option>
+                                        <option value="1">Lecture 1 (09:00 - 09:55)</option>
+                                        <option value="2">Lecture 2 (09:55 - 10:50)</option>
+                                        <option value="3">Lecture 3 (11:00 - 11:55)</option>
+                                        <option value="4">Lecture 4 (11:55 - 12:50)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Card -->
+                    <div class="upload-card-main">
+                        <div class="upload-header">
+                            <h2><i class="fas fa-camera"></i> Group Photo</h2>
+                        </div>
+                        <div class="upload-body">
+                            <!-- Upload Area -->
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-placeholder">
+                                    <div class="upload-icon-large">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h3>Drop your image here</h3>
+                                    <p>or click to browse files</p>
+                                    <div class="upload-specs">
+                                        <span><i class="fas fa-check"></i> JPG</span>
+                                        <span><i class="fas fa-check"></i> PNG</span>
+                                        <span><i class="fas fa-check"></i> WEBP</span>
+                                        <span><i class="fas fa-check"></i> Max 10MB</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+                            <!-- Preview Area -->
+                            <div class="preview-area" id="previewArea" style="display: none;">
+                                <div class="preview-header">
+                                    <h3><i class="fas fa-image"></i> Preview</h3>
+                                    <button class="remove-btn" id="removeImage">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </div>
+                                <div class="image-preview" id="imagePreview">
+                                    <img id="previewImg" src="" alt="Group Photo Preview">
+                                </div>
+                                <div class="preview-info">
+                                    <div class="info-item">
+                                        <span class="info-label">File:</span>
+                                        <span class="info-value" id="fileName">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Size:</span>
+                                        <span class="info-value" id="fileSize">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Detected:</span>
+                                        <span class="info-value highlight" id="detectedCount">0 students</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Processing Status -->
+                            <div class="processing-area" id="processingArea" style="display: none;">
+                                <div class="processing-content">
+                                    <div class="spinner-large">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                    <h3>Processing Image</h3>
+                                    <p>Analyzing group photo and detecting faces...</p>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" id="processProgress"></div>
+                                        </div>
+                                        <span class="progress-text" id="progressText">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detection Results -->
+                            <div class="detection-results" id="detectionResults" style="display: none;">
+                                <div class="results-header">
+                                    <h3><i class="fas fa-users"></i> Detected Students</h3>
+                                    <span class="detection-count" id="detectedStudentsCount">0</span>
+                                </div>
+                                <div class="detected-faces" id="detectedFaces">
+                                    <!-- Detected faces will be shown here -->
+                                </div>
+                                <div class="result-actions">
+                                    <button class="btn btn-secondary" id="retakeBtn">
+                                        <i class="fas fa-redo"></i> Retake
+                                    </button>
+                                    <button class="btn btn-primary btn-large" id="confirmAttendanceBtn">
+                                        <i class="fas fa-check-circle"></i> Mark Attendance
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Records Tab -->
+            <div class="tab-content" id="records">
+                <div class="page-header">
+                    <h1><i class="fas fa-clipboard-list"></i> Attendance Records</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Filter Section -->
+                <div class="records-filter">
+                    <div class="filter-card">
+                        <div class="filter-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="recDate" class="form-control">
+                            </div>
+                            <button class="btn btn-primary" id="filterRecords">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Records Table -->
+                <div class="records-table-section">
+                    <div class="table-card">
+                        <table class="records-table" id="recordsTable">
+                            <thead>
+                                <tr>
+                                    <th>Enrollment No</th>
+                                    <th>Student Name</th>
+                                    <th>Date</th>
+                                    <th>Lecture</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-message">
+            <h4>Success</h4>
+            <p>Attendance saved successfully!</p>
+        </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-modal-content">
+            <div class="crop-header">
+                <h3><i class="fas fa-crop-alt"></i> Crop Profile Image</h3>
+                <button class="crop-close" id="cropClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="crop-body">
+                <div class="crop-container">
+                    <img id="cropImage" src="" alt="Crop Image">
+                </div>
+                <div class="crop-controls">
+                    <div class="crop-zoom">
+                        <label><i class="fas fa-search-minus"></i> Zoom</label>
+                        <input type="range" id="cropZoom" min="1" max="3" step="0.1" value="1">
+                    </div>
+                </div>
+            </div>
+            <div class="crop-footer">
+                <button class="btn btn-secondary" id="cropCancel">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn btn-primary" id="cropSave">
+                    <i class="fas fa-check"></i> Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="faculty.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Attendance Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+    <div id="flashMessages" style="display:none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-msg" data-type="{{category}}">
+            {{message}}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar Overlay (for mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-text" id="sidebarLogo">
+                    <span class="logo-edu">Edu</span><span class="logo-sync">Sync</span>
+                </div>
+                <!-- <h3>Admin Portal</h3>
+                <p>Welcome, Administrator</p> -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="faculty">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Faculty & Mentor</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="batch">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Batch & Semester</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="timetable">
+                    <i class="fas fa-clock"></i>
+                    <span>Timetable</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mobile Header with Hamburger -->
+            <header class="mobile-header">
+                <button class="hamburger-menu" id="hamburgerMenu" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="mobile-title"><span class="logo-edu">Edu</span><span class="logo-sync">Sync</span></h1>
+                <button class="theme-toggle mobile-theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+
+                <div class="page-header">
+                    <h1><i class="fas fa-chart-pie"></i> Admin Dashboard</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalFaculty">{{ faculty|length if faculty else 0 }}</h3>
+                            <p>Total Faculty</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalStudents">{{ students|length if students else 0 }}</h3>
+                            <p>Total Students</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalMentors">{{ mentors|length if mentors else 0 }}</h3>
+                            <p>Total Mentors</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn" data-tab="faculty">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Add Faculty</span>
+                        </button>
+                        <button class="action-btn" data-tab="batch">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Batch</span>
+                        </button>
+                        <button class="action-btn" data-tab="timetable">
+                            <i class="fas fa-clock"></i>
+                            <span>Create Timetable</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-section">
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                    <div class="recent-list" id="recentActivity">
+                        <div class="recent-item">
+                            <div class="recent-icon green">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="recent-info">
+                                <h4>No Recent Activity</h4>
+                                <p>Activity will appear here once you start managing the system</p>
+                            </div>
+                            <div class="recent-time">
+                                <span>-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty & Mentor Tab -->
+            <div class="tab-content" id="faculty">
+                <div class="page-header">
+                    <h1><i class="fas fa-user-tie"></i> Faculty & Mentor Management</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Generate ID Section -->
+                <div class="form-section">
+                    <!-- Faculty Form -->
+                    <div class="section-card">
+                        <h2><i class="fas fa-chalkboard-teacher"></i> Add Faculty</h2>
+                        <form method="post" action="/add_faculty_mentor">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Role <span class="required">*</span></label>
+
+                                    <select id="userRole" name="role" class="form-control" required>
+                                        <option value="">Select Role</option>
+                                        <option value="faculty">Faculty</option>
+                                    </select>
+
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Department <span class="required">*</span></label>
+
+                                    <select id="facultyDepartment" name="department" class="form-control" required>
+                                        <option value="">Select Department</option>
+                                        <option value="CE Department">CE Department</option>
+                                        <option value="IT Department">IT Department</option>
+                                        <option value="ME Department">ME Department</option>
+                                        <option value="Civil Department">Civil Department</option>
+                                        <option value="EC Department">EC Department</option>
+                                        <option value="AE Department">AE Department</option>
+                                    </select>
+
+                                </div>
+                            </div>
+
+
+                            <div class="form-row">
+
+                                <div class="form-group">
+                                    <label>Full Name <span class="required">*</span></label>
+
+                                    <input type="text" id="facultyFullName" name="full_name" class="form-control"
+                                        placeholder="Enter full name" required>
+
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email <span class="required">*</span></label>
+
+                                    <input type="email" id="facultyEmail" name="email" class="form-control"
+                                        placeholder="Enter email address" required>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-row">
+
+                                <div class="form-group">
+                                    <label>Designation <span class="required">*</span></label>
+
+                                    <select id="facultyDesignation" name="designation" class="form-control" required>
+                                        <option value="">Select Designation</option>
+                                        <option value="professor">Professor</option>
+                                        <option value="associate professor">Associate Professor</option>
+                                        <option value="assistant professor">Assistant Professor</option>
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Generate ID & Password
+                                </button>
+
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                    <!-- Mentor Form -->
+                    <div class="section-card">
+                        <h2><i class="fas fa-user-graduate"></i> Add Mentor</h2>
+                        <form method="post" action="/add_mentor">
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label>Select Faculty <span class="required">*</span></label>
+
+                                    <select id="mentorFaculty" name="faculty_id" class="form-control" required>
+                                        <option value="">Select Faculty</option>
+                                        {% if faculty %}
+                                        {% for f in faculty %}
+                                        <option value="{{ f.generated_id }}">{{ f.designation}} {{ f.full_name }} ( {{
+                                            f.department }} )</option>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </select>
+
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+
+                                <div class="form-group">
+                                    <label>Select Batch <span class="required">*</span></label>
+
+                                    <select id="mentorBatch" name="batch" class="form-control" required>
+                                        <option value="">Select Batch</option>
+                                        <option value="2023-2027">2023-2027</option>
+                                        <option value="2024-2028">2024-2028</option>
+                                        <option value="2025-2029">2025-2029</option>
+                                        <option value="2026-2030">2026-2030</option>
+                                    </select>
+
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Class <span class="required">*</span></label>
+
+                                    <input type="text" id="mentorClass" name="class" class="form-control"
+                                        placeholder="Enter Class" required>
+
+                                </div>
+
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Add Mentor
+                                </button>
+
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+                <!-- Faculty List -->
+                <div class="table-section">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2><i class="fas fa-chalkboard-teacher"></i> Faculty List</h2>
+                            <div class="table-search">
+                                <input type="text" id="facultySearch" class="search-input"
+                                    placeholder="Search faculty...">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="facultyTable">
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>Password</th>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Designation</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="facultyTableBody">
+
+                                    {% if faculty %}
+                                    {% for row in faculty %}
+
+                                    <tr>
+                                        <td>{{ row.generated_id }}</td>
+                                        <td>{{ row.generated_password }}</td>
+                                        <td>{{ row.full_name }}</td>
+                                        <td>{{ row.role }}</td>
+                                        <td>{{ row.department }}</td>
+                                        <td>{{ row.designation }}</td>
+                                        <td>{{ row.email }}</td>
+
+                                    </tr>
+
+                                    {% endfor %}
+                                    {% endif %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-empty" id="facultyEmpty" {% if faculty %}style="display:none;" {% endif %}>
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <h3>No Faculty Added</h3>
+                            <p>Generate and add faculty members using the form above</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mentor List -->
+                <div class="table-section">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2><i class="fas fa-user-graduate"></i> Mentor List</h2>
+                            <div class="table-search">
+                                <input type="text" id="mentorSearch" class="search-input"
+                                    placeholder="Search mentors...">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="mentorTable">
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>Password</th>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Class</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="mentorTableBody">
+
+                                    {% if mentors %}
+                                    {% for row in mentors %}
+
+                                    <tr>
+                                        <td>{{ row.generated_id }}</td>
+                                        <td>{{ row.generated_password }}</td>
+                                        <td>{{ row.full_name }}</td>
+                                        <td>{{ row.role }}</td>
+                                        <td>{{ row.department }}</td>
+                                        <td>{{ row.class }}</td>
+                                        <td>{{ row.email }}</td>
+
+                                    </tr>
+
+                                    {% endfor %}
+                                    {% endif %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-empty" id="mentorEmpty" {% if not mentors %}style="display:none;" {% endif %}>
+                            <i class="fas fa-user-graduate"></i>
+                            <h3>No Mentors Added</h3>
+                            <p>Generate and add mentors using the form above</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch & Semester Tab -->
+            <div class="tab-content" id="batch">
+                <div class="page-header">
+                    <h1><i class="fas fa-graduation-cap"></i> Batch & Semester Management</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Excel Upload Section -->
+                <div class="form-section">
+                    <div class="section-card">
+                        <h2><i class="fas fa-file-excel"></i> Import Batch & Semester Data</h2>
+                        <p class="section-description">Upload an Excel file containing batch information
+                        </p>
+                        <form id="importBatchForm" action="/upload_students" method="POST"
+                            enctype="multipart/form-data">
+
+                            <div class="form-row">
+
+                                <div class="form-group full-width">
+
+                                    <label>Select Excel File <span class="required">*</span></label>
+
+                                    <div class="file-upload-wrapper">
+
+                                        <input type="file" id="batchExcelFile" name="batch_excel_file"
+                                            class="file-input" accept=".xlsx,.xls,.csv" required>
+
+                                        <div class="file-upload-area">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Drag & drop your Excel file here or click to browse</p>
+                                            <span class="file-hint">
+                                                Supported formats: .xlsx, .xls, .csv
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="file-preview" id="filePreview" style="display:none;">
+
+                                        <i class="fas fa-file-excel"></i>
+
+                                        <span class="file-name" id="fileName"></span>
+
+                                        <button type="button" class="remove-file" id="removeFile">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-actions">
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> Upload & Import
+                                </button>
+
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Uploaded File Display Section -->
+                <div class="table-section" id="uploadedFileSection">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2><i class="fas fa-file-excel"></i> Uploaded File Data</h2>
+                            <div class="table-actions-header">
+                                <button class="btn btn-secondary" id="downloadTemplateBtn">
+                                    <i class="fas fa-download"></i> Download Template
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="uploadedFileTable">
+                                <thead id="uploadedFileTableHead">
+                                    <tr>
+                                        <th>Batch</th>
+                                        <th>Enrollment</th>
+                                        <th>Department</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="uploadedFileTableBody">
+                                    {% if not students %}
+                                    <tr>
+                                        <td colspan="7" style="text-align: center;">
+                                            No Data Available
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if students %}
+                                    {% for row in students %}
+                                    <tr>
+                                        <td>{{ row.batch }}</td>
+                                        <td>{{ row.enrollment }}</td>
+                                        <td>{{ row.department }}</td>
+                                        <td>{{ row.name }}</td>
+                                        <td>{{ row.email }}</td>
+                                        <td>{{ row.phone_no }}</td>
+                                        <td>{{ row.address }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <span class="record-count" id="recordCount">{{ students|length if students else 0 }}
+                                records</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timetable Tab -->
+            <div class="tab-content" id="timetable">
+                <div class="page-header">
+                    <h1><i class="fas fa-calendar-alt"></i> Timetable Management</h1>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+
+                <!-- Create Timetable Section -->
+                <div class="form-section">
+                    <div class="section-card">
+                        <h2><i class="fas fa-clock"></i> Create Class Timetable</h2>
+                        <form id="timetableForm" method="POST" action="/add_timetable">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Class <span class="required">*</span></label>
+                                    <select id="timetableClass" name="class_name" class="form-control" required>
+                                        <option value="">Select Class</option>
+
+                                        {% for c in mentors %}
+                                        <option value="{{ c.class }}">{{ c.class }}</option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Day <span class="required">*</span></label>
+                                    <select id="timetableDay" name="day" class="form-control" required>
+                                        <option value="">Select Day</option>
+                                        <option value="monday">Monday</option>
+                                        <option value="tuesday">Tuesday</option>
+                                        <option value="wednesday">Wednesday</option>
+                                        <option value="thursday">Thursday</option>
+                                        <option value="friday">Friday</option>
+                                        <option value="saturday">Saturday</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Lecture Slot <span class="required">*</span></label>
+                                    <select id="timetableSlot" name="lecture_no" class="form-control" required>
+                                        <option value="">Select Time Slot</option>
+                                        <option value="1">Lecture 1 (09:00 - 09:55)</option>
+                                        <option value="2">Lecture 2 (09:55 - 10:50)</option>
+                                        <option value="3">Lecture 3 (11:00 - 11:55)</option>
+                                        <option value="4">Lecture 4 (11:55 - 12:50)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Subject <span class="required">*</span></label>
+                                    <select id="timetableSubject" name="subject" class="form-control" required>
+                                        <option value="">Select Subject</option>
+
+                                        <!-- IT Department - 4th Semester -->
+                                        <optgroup label="IT - 4th Semester">
+                                            <option value="Data Structures">Data Structures</option>
+                                            <option value="Database Management System (DBMS)">Database Management System
+                                                (DBMS)</option>
+                                            <option value="Operating System">Operating System</option>
+                                            <option value="Discrete Mathematics">Discrete Mathematics</option>
+                                            <option value="Computer Organization">Computer Organization</option>
+                                        </optgroup>
+
+                                        <!-- IT Department - 6th Semester -->
+                                        <optgroup label="IT - 6th Semester">
+                                            <option value="Machine Learning">Machine Learning</option>
+                                            <option value="Cloud Computing">Cloud Computing</option>
+                                            <option value="Data Mining">Data Mining</option>
+                                            <option value="Information Security">Information Security</option>
+                                        </optgroup>
+
+                                        <!-- CE Department - 4th Semester -->
+                                        <optgroup label="CE - 4th Semester">
+                                            <option value="Structural Analysis">Structural Analysis</option>
+                                            <option value="Fluid Mechanics">Fluid Mechanics</option>
+                                            <option value="Geotechnical Engineering">Geotechnical Engineering</option>
+                                            <option value="Surveying">Surveying</option>
+                                            <option value="Engineering Mathematics">Engineering Mathematics</option>
+                                        </optgroup>
+
+                                        <!-- CE Department - 6th Semester -->
+                                        <optgroup label="CE - 6th Semester">
+                                            <option value="Transportation Engineering">Transportation Engineering
+                                            </option>
+                                            <option value="Environmental Engineering">Environmental Engineering</option>
+                                            <option value="Structural Design">Structural Design</option>
+                                            <option value="Construction Management">Construction Management</option>
+                                        </optgroup>
+
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Faculty <span class="required">*</span></label>
+                                    <select id="timetableFaculty" name="faculty_id" class="form-control" required>
+
+                                        <option value="">Select Faculty</option>
+
+                                        {% if faculty %}
+                                        {% for f in faculty %}
+                                        <option value="{{ f.generated_id }}">
+                                            {{ f.full_name }} ({{ f.designation }})
+                                        </option>
+                                        {% endfor %}
+                                        {% endif %}
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Add Lecture
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Timetable Display -->
+                <div class="timetable-section">
+                    <div class="timetable-card">
+                        <div class="timetable-header">
+                            <h2><i class="fas fa-table"></i> Class Timetable</h2>
+                            <div class="timetable-filters">
+                                <select id="viewClass" class="form-control">
+                                    <option value="">Class</option>
+                                    {% for m in mentors %}
+                                    <option value="{{ m.class }}">{{ m.class }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="timetable-grid" id="timetableGrid">
+                            <table class="timetable-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Monday</th>
+                                        <th>Tuesday</th>
+                                        <th>Wednesday</th>
+                                        <th>Thursday</th>
+                                        <th>Friday</th>
+                                        <th>Saturday</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timetableBody">
+                                    <tr>
+                                        <td class="time-slot">
+                                            <span>09:00 - 09:55</span>
+                                            <small>Lecture 1</small>
+                                        </td>
+                                        <td class="lecture-cell" data-day="monday" data-slot="1"></td>
+                                        <td class="lecture-cell" data-day="tuesday" data-slot="1"></td>
+                                        <td class="lecture-cell" data-day="wednesday" data-slot="1"></td>
+                                        <td class="lecture-cell" data-day="thursday" data-slot="1"></td>
+                                        <td class="lecture-cell" data-day="friday" data-slot="1"></td>
+                                        <td class="lecture-cell" data-day="saturday" data-slot="1"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time-slot">
+                                            <span>09:55 - 10:50</span>
+                                            <small>Lecture 2</small>
+                                        </td>
+                                        <td class="lecture-cell" data-day="monday" data-slot="2"></td>
+                                        <td class="lecture-cell" data-day="tuesday" data-slot="2"></td>
+                                        <td class="lecture-cell" data-day="wednesday" data-slot="2"></td>
+                                        <td class="lecture-cell" data-day="thursday" data-slot="2"></td>
+                                        <td class="lecture-cell" data-day="friday" data-slot="2"></td>
+                                        <td class="lecture-cell" data-day="saturday" data-slot="2"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time-slot">
+                                            <span>11:00 - 11:55</span>
+                                            <small>Lecture 3</small>
+                                        </td>
+                                        <td class="lecture-cell" data-day="monday" data-slot="3"></td>
+                                        <td class="lecture-cell" data-day="tuesday" data-slot="3"></td>
+                                        <td class="lecture-cell" data-day="wednesday" data-slot="3"></td>
+                                        <td class="lecture-cell" data-day="thursday" data-slot="3"></td>
+                                        <td class="lecture-cell" data-day="friday" data-slot="3"></td>
+                                        <td class="lecture-cell" data-day="saturday" data-slot="3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="time-slot">
+                                            <span>11:55 - 12:50</span>
+                                            <small>Lecture 4</small>
+                                        </td>
+                                        <td class="lecture-cell" data-day="monday" data-slot="4"></td>
+                                        <td class="lecture-cell" data-day="tuesday" data-slot="4"></td>
+                                        <td class="lecture-cell" data-day="wednesday" data-slot="4"></td>
+                                        <td class="lecture-cell" data-day="thursday" data-slot="4"></td>
+                                        <td class="lecture-cell" data-day="friday" data-slot="4"></td>
+                                        <td class="lecture-cell" data-day="saturday" data-slot="4"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> Confirm Action</h3>
+                <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
